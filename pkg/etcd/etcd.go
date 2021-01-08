@@ -111,6 +111,18 @@ func (e *ETCD) Test(ctx context.Context) error {
 	for _, member := range members.Members {
 		for _, peerURL := range member.PeerURLs {
 			if peerURL == e.peerURL() && e.name == member.Name {
+				//check etcd dir permission
+				info, err := os.Stat(etcdDBDir(e.config))
+				fmt.Println(" Menna ", filepath.Dir(info.Name()), info.Mode())
+
+				if err != nil {
+					return err
+				}
+				if info.Mode() != 0700 {
+					os.Chmod(filepath.Dir(info.Name()), 0700)
+					info, _ := os.Stat(etcdDBDir(e.config))
+					fmt.Println(" Menna after change", info.Name(), info.Mode())
+				}
 				return nil
 			}
 		}
@@ -219,10 +231,7 @@ func (e *ETCD) Start(ctx context.Context, clientAccessInfo *clientaccess.Info) e
 	go e.manageLearners(ctx)
 
 	if existingCluster {
-		info, err := os.Stat(etcdDBDir(e.config))
-		if info.Mode().Perm() != 0700 {
-			os.Chmod(info.Name(), 0700)
-		}
+
 		opt, err := executor.CurrentETCDOptions()
 		if err != nil {
 			return err
