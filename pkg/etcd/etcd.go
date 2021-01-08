@@ -107,19 +107,16 @@ func (e *ETCD) Test(ctx context.Context) error {
 		return err
 	}
 	//check etcd dir permission
-	etcdd := etcdDBDir(e.config)
-	info, err := os.Stat(etcdd)
+	etcdDir := etcdDBDir(e.config)
+	info, err := os.Stat(etcdDir)
 	if err != nil {
 		return err
 	}
-	fmt.Println(" Menna", filepath.Dir(info.Name()), info.Mode(), etcdd)
 	if info.Mode() != 0700 {
-		err = os.Chmod(etcdd, 0700)
+		err = os.Chmod(etcdDir, 0700)
 		if err != nil {
 			return err
 		}
-		info2, _ := os.Stat(etcdd)
-		fmt.Println(" Menna after change", info2.Name(), info2.Mode(), etcdd)
 	}
 	var memberNameUrls []string
 	for _, member := range members.Members {
